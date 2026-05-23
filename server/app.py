@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# Import all utilities and modules
 from flask import Flask, jsonify
 from flask_migrate import Migrate
 

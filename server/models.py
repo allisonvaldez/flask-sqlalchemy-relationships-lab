@@ -17,7 +17,6 @@ session_speakers = db.Table(
     db.Column("speaker_id", db.Integer, db.ForeignKey("speakers.id"), primary_key=True)
 )
 
-
 # Create relationships for all models
 class Event(db.Model):
 
@@ -30,9 +29,8 @@ class Event(db.Model):
     name = db.Column(db.String, nullable=False)
     location = db.Column(db.String, nullable=False)
 
-    # Create one-to-many relationship because one event has multiple sessions. Don't forget to use back_populates='events' to connect it to the session. Deleting an orphan event should delete the session.
-    sessions = db.relationship("Session", back_populates="events", cascade="all, delete-orphan") 
-
+    # Create one-to-many relationship because one event has multiple sessions. back_populates='event' connects it to Session.event below (CORRECTION: was 'events', must exactly match the attribute name on Session). Deleting an orphan event should delete the session.
+    sessions = db.relationship("Session", back_populates="event", cascade="all, delete-orphan")
 
     # Provides a string when an event is printed
     def __repr__(self):
@@ -49,7 +47,13 @@ class Session(db.Model):
     # Declare other table attributes
     title = db.Column(db.String, nullable=False)
     start_time = db.Column(db.DateTime)
-    event_id = db.Column(db.Integer)
+    event_id = db.Column(db.Integer, db.ForeignKey("events.id"))
+
+    # Each Session belongs to one Event, back_populates='sessions' connects to Event.sessions above
+    event = db.relationship("Event", back_populates="sessions")
+
+    # Sessions can have many Speakers, secondary=session_speakers tells SQLAlchemy to use the association table. Back_populates='sessions' connects to Speaker.sessions below
+    speakers = db.relationship("Speaker", secondary=session_speakers, back_populates="sessions")
 
     # Provides a string when an session is printed
     def __repr__(self):
@@ -66,9 +70,15 @@ class Speaker(db.Model):
     # Declare other attributes for the speaker
     name = db.Column(db.String, nullable=False)
 
+    # One Speaker has one Bio, uselist=False tells SQLAlchemy this is one-to-one not one-to-many. Back_populates='speaker' connects to Bio.speaker below, cascade='all, delete-orphan' means deleting a Speaker deletes their Bio too
+    bio = db.relationship("Bio", back_populates="speaker", uselist=False, cascade="all, delete-orphan")
+
+    # A Speaker can be in many Sessions, secondary=session_speakers tells SQLAlchemy to use the association table. Back_populates='speakers' connects to Session.speakers above
+    sessions = db.relationship("Session", secondary=session_speakers, back_populates="speakers")
+
     # Provides a string when an speaker is printed
     def __repr__(self):
-        return f'<Speaker {id}, {name}>'
+        return f'<Speaker {self.id}, {self.name}>'
 
 # Create a biography model for the speaker. Each bio should belong to one and only one speaker as one to one.
 class Bio(db.Model):
@@ -80,7 +90,11 @@ class Bio(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     # Create other attributes for the bio
     bio_text = db.Column(db.Text, nullable=False)
-    speaker_id = db.Column(db.Integer)
+    speaker_id = db.Column(db.Integer, db.ForeignKey("speakers.id"))
 
+    # Each Bio belongs to one Speaker, back_populates='bio' connects to Speaker.bio above
+    speaker = db.relationship("Speaker", back_populates="bio")
+
+    # Provides a string when a bio is printed
     def __repr__(self):
-        return f'<Bio {id}, {bio_text}>'
+        return f'<Bio {self.id}, {self.bio_text}>'
