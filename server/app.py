@@ -53,7 +53,7 @@ def get_event_sessions(id):
             "start_time": s.start_time.isoformat() if s.start_time else None
         }
 
-        for s in events.sessions
+        for s in event.sessions
     ]), 200
 
 # Create all functionality for providing a list of all speakers with a specific id and name
