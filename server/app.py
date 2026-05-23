@@ -13,7 +13,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.json.compact = False
 
-# Connect the app to the db to run and initilize it
+# Connect the app to the db to run and initialize it
 migrate = Migrate(app, db)
 db.init_app(app)
 
@@ -21,7 +21,7 @@ db.init_app(app)
 @app.route('/events')
 def get_events():
     # Search event's table rows in the db
-    events = Event.query.all() 
+    events = Event.query.all()
 
     # Convert the event object into a dictionary so we can use jsonify
     return jsonify([
@@ -30,9 +30,7 @@ def get_events():
             "name": e.name,
             "location": e.location
         }
-
         for e in events
-
     ]), 200
 
 # Create all functionality for sessions for an event at this route
@@ -41,10 +39,10 @@ def get_event_sessions(id):
     # Find the event by its primary key
     event = db.session.get(Event, id)
 
-    # Perform error handling if no event found return 404 
+    # Perform error handling if no event found return 404
     if not event:
         return jsonify({"error": "Event not found"}), 404
-    
+
     # Otherwise return all sessions for the event in jsonify form
     return jsonify([
         {
@@ -52,7 +50,6 @@ def get_event_sessions(id):
             "title": s.title,
             "start_time": s.start_time.isoformat() if s.start_time else None
         }
-
         for s in event.sessions
     ]), 200
 
@@ -60,18 +57,15 @@ def get_event_sessions(id):
 @app.route('/speakers')
 def get_speakers():
     # Search speaker's table rows in the db
-    speakers = Speaker.query.all() 
+    speakers = Speaker.query.all()
 
     # Convert the speaker object into a dictionary so we can use jsonify
     return jsonify([
         {
             "id": s.id,
-            "name": s.name,
-            "location": s.location
+            "name": s.name
         }
-
-        for s in events
-
+        for s in speakers
     ]), 200
 
 # Create all functionality for providing a single speaker's bio
@@ -83,11 +77,11 @@ def get_speaker(id):
     # Perform error handling if no speaker found
     if not speaker:
         return jsonify({"error": "Speaker not found"}), 404
-    
-    # Otherwise provide bio 
+
+    # Perform error handling if no bio exists
     bio_text = speaker.bio.bio_text if speaker.bio else "No bio available"
-    
-    # jsonified
+
+    # Return speaker data as JSON
     return jsonify({
         "id": speaker.id,
         "name": speaker.name,
@@ -103,8 +97,8 @@ def get_session_speakers(id):
     # Perform error handling if no session found with that ID
     if not session:
         return jsonify({"error": "Session not found"}), 404
-    
-    # Otherwise provide bio for all speakers for the session
+
+    # Provide jsonification
     return jsonify([
         {
             "id": sp.id,
